@@ -1,0 +1,8 @@
+<launch>
+    
+    <!-- Main Code -->
+    <node pkg="fmcw_receive" type="driver" name="driver" output="screen" respawn="true"/>
+    <node pkg="fmcw_receive" type="decoder" name="decoder" output="screen" respawn="true"/>
+    
+    <node pkg="rviz" type="rviz" name="fmcw_rviz" args="-d $(find fmcw_receive)/cfg/rviz.rviz" />
+</launch>

@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="rviz" type="rviz" name="fmcw_rviz" args="-d $(find usb_receive)/cfg/rviz.rviz" />
+</launch>

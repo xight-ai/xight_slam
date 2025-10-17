@@ -1,0 +1,121 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(v_losm)
+
+set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -pthread")
+
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  tf
+  std_msgs
+  sensor_msgs
+  geometry_msgs
+  nav_msgs
+  message_generation
+  visualization_msgs
+)
+
+find_package( GTSAMCMakeTools )
+find_package(catkin REQUIRED)
+find_package(PCL REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Ceres REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(Boost REQUIRED REQUIRED COMPONENTS timer)
+find_package(GTSAM REQUIRED QUIET)
+
+add_message_files(
+  DIRECTORY msg
+  FILES
+  cloud_info.msg
+)
+
+add_service_files(
+  DIRECTORY srv
+  FILES
+  save_map.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  std_msgs
+  nav_msgs
+  sensor_msgs
+)
+
+
+catkin_package(
+  INCLUDE_DIRS include
+
+  CATKIN_DEPENDS
+  std_msgs
+  nav_msgs
+  geometry_msgs
+  sensor_msgs
+  message_runtime
+  message_generation
+  visualization_msgs
+)
+
+include_directories(
+  include 
+  ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  ${CERES_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${GTSAM_INCLUDE_DIR}
+)
+
+link_directories(
+  include
+  ${PCL_LIBRARY_DIRS}
+  ${OpenCV_LIBRARY_DIRS}
+  ${CERES_LIBRARY_DIRS}
+  ${GTSAM_LIBRARY_DIRS}
+)
+
+add_executable(fastClustering
+  src/fastClustering.cpp
+)
+add_dependencies(fastClustering ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(fastClustering
+  ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} ${OpenCV_LIBRARIES}
+)
+
+add_executable(featureExtract
+  src/featureExtract.cpp
+)
+add_dependencies(featureExtract ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(featureExtract
+  ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} ${OpenCV_LIBRARIES}
+)
+
+add_executable(mapOptimization
+  src/mapOptimization.cpp
+)
+add_dependencies(mapOptimization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_compile_options(mapOptimization PRIVATE ${OpenMP_CXX_FLAGS})
+target_link_libraries(mapOptimization
+  ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam "/usr/lib/x86_64-linux-gnu/libtbb.so.2"
+)
+
+add_executable(spawnStaticMap
+  src/spawnStaticMap.cpp
+)
+add_dependencies(spawnStaticMap ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_compile_options(spawnStaticMap PRIVATE ${OpenMP_CXX_FLAGS})
+target_link_libraries(spawnStaticMap
+  ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS}
+)
+
+add_executable(imuPreintegration src/imuPreintegration.cpp)
+target_link_libraries(imuPreintegration ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} gtsam "/usr/lib/x86_64-linux-gnu/libtbb.so.2")
+
+add_executable(imageProjection src/imageProjection.cpp)
+add_dependencies(imageProjection ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(imageProjection ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})

@@ -1,0 +1,28 @@
+<launch>
+    <!-- main func -->
+    <!-- <node pkg="v_losm" type="addNoise" name="addNoise" output="screen" /> -->
+
+    <!-- Parameters -->
+    <rosparam file="$(find v_losm)/cfg/params.yaml" command="load" />
+
+
+    <node pkg="v_losm" type="imuPreintegration" name="imuPreintegration" output="screen" />
+
+    <node pkg="v_losm" type="imageProjection" name="imageProjection" output="screen" />
+
+    <node pkg="v_losm" type="fastClustering" name="fastClustering" output="screen" />
+
+    <node pkg="v_losm" type="featureExtract" name="featureExtract"  />
+
+    <node pkg="v_losm" type="mapOptimization" name="mapOptimization" output="screen" />
+
+    <node pkg="v_losm" type="spawnStaticMap" name="spawnStaticMap" output="screen" />
+   
+    
+    <!-- display -->
+    <arg name="rviz" default="true" />
+    <group if="$(arg rviz)">
+        <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find v_losm)/cfg/rviz.rviz" />
+    </group>
+
+</launch>
