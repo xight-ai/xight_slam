@@ -1,0 +1,1 @@
+先用rosrun启动decoder，再用roslaunch启动v_losm，然后用rosbag播放zip中的bag包
